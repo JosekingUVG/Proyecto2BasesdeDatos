@@ -1,0 +1,21 @@
+# Node
+node_modules/
+npm-debug.log
+
+# Env files
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Docker
+*.pid
+
+# Editor
+.vscode/
+.idea/

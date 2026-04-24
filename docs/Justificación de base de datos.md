@@ -16,14 +16,14 @@ La base de datos está diseñada para gestionar productos, proveedores, empleado
 ## Modelo relacional documentado
 De las relaciones principales, se llego al siguiente modelo relacional
 
-[modelo relacional](img/conceptual.png) 
+[modelo relacional](../img/conceptual.png) 
 
 ---
 
 ## Diagrama entidad relación 
 El siguiente diagrama entidad relación muestra las entidades, atributos con sus tipos de datos, relaciones y cardinalidades. 
 
-[Diagrama entidad relación](img/erd.png) 
+[Diagrama entidad relación](../img/erd.png) 
 
 
 

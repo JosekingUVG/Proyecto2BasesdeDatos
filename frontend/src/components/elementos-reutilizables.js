@@ -58,10 +58,13 @@ export function renderSharedHeader({ active = "Inventario", userName = "" } = {}
 	`;
 }
 
-export function fillInventoryTable(tbody, productos = []) {
+export function fillInventoryTable(tbody, productos = [], categoriasDisponibles = []) {
 	if (!tbody) return;
 
-	const categoriasBase = ["Electrónica", "Muebles", "Accesorios"];
+	const categoriasBase =
+		categoriasDisponibles.length > 0
+			? categoriasDisponibles
+			: [...new Set(productos.map((item) => item.categoria).filter(Boolean))];
 	const statusBase = ["activo", "inactivo"];
 
 	const renderOptions = (baseValues, selectedValue) => {

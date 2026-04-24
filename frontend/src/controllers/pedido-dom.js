@@ -45,6 +45,20 @@ let sessionToken = "";
 let sessionUser = null;
 let productosActivos = [];
 
+function setCategoriaOptions(categorias) {
+  const selectedValue = pedidoCategoria.value;
+  const options = [
+    '<option value="">Todas</option>',
+    ...categorias.map((categoria) => `<option value="${categoria}">${categoria}</option>`),
+  ];
+
+  pedidoCategoria.innerHTML = options.join("");
+
+  if (selectedValue && categorias.includes(selectedValue)) {
+    pedidoCategoria.value = selectedValue;
+  }
+}
+
 function formatCurrency(value) {
   return `Q ${Number(value || 0).toFixed(2)}`;
 }
@@ -213,6 +227,12 @@ async function cargarProductos() {
   }
 }
 
+async function cargarCategoriasPedido() {
+  const productos = await inventarioRequest({ status: "activo" }, sessionToken);
+  const categorias = [...new Set(productos.map((item) => item.categoria).filter(Boolean))];
+  setCategoriaOptions(categorias);
+}
+
 function handleCantidad(idProducto, delta) {
   const cart = getCart();
   const index = cart.findIndex((item) => item.id_producto === idProducto);
@@ -365,6 +385,7 @@ async function init() {
     updateCartSummary();
     bindListaEventos();
     bindGeneralEvents();
+    await cargarCategoriasPedido();
     await cargarProductos();
   } catch {
     clearSession();

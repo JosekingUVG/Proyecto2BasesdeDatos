@@ -22,6 +22,7 @@ const precioInput = document.getElementById("filtro-precio");
 const filtrarBtn = document.getElementById("btn-filtrar");
 
 let sessionToken = "";
+let categoriasDisponibles = [];
 
 function redirectToLogin() {
   window.location.href = "/";
@@ -32,6 +33,26 @@ function getFiltrosActuales() {
     categoria: categoriaSelect.value,
     precio_min: precioInput.value,
   };
+}
+
+function setCategoriaOptions(selectElement, categorias) {
+  const selectedValue = selectElement.value;
+  const options = [
+    '<option value="">Todas</option>',
+    ...categorias.map((categoria) => `<option value="${categoria}">${categoria}</option>`),
+  ];
+
+  selectElement.innerHTML = options.join("");
+
+  if (selectedValue && categorias.includes(selectedValue)) {
+    selectElement.value = selectedValue;
+  }
+}
+
+async function cargarCategoriasInventario() {
+  const productos = await inventarioRequest({}, sessionToken);
+  categoriasDisponibles = [...new Set(productos.map((item) => item.categoria).filter(Boolean))];
+  setCategoriaOptions(categoriaSelect, categoriasDisponibles);
 }
 
 function bindHeaderActions() {
@@ -59,10 +80,10 @@ async function cargarInventario() {
 
     const productos = await inventarioRequest(getFiltrosActuales(), sessionToken);
 
-    fillInventoryTable(tbody, productos);
+    fillInventoryTable(tbody, productos, categoriasDisponibles);
     showFeedback(feedback, `Registros cargados: ${productos.length}`);
   } catch (error) {
-    fillInventoryTable(tbody, []);
+    fillInventoryTable(tbody, [], categoriasDisponibles);
     showFeedback(feedback, error.message || "No se pudo cargar inventario", true);
   } finally {
     filtrarBtn.disabled = false;
@@ -73,6 +94,7 @@ async function onDeleteProducto(idProducto) {
   try {
     showFeedback(feedback, "Eliminando producto...");
     await eliminarProductoRequest(idProducto, sessionToken);
+    await cargarCategoriasInventario();
     showFeedback(feedback, "Producto eliminado correctamente");
     await cargarInventario();
   } catch (error) {
@@ -84,6 +106,7 @@ async function onEditarCampo(idProducto, payload) {
   try {
     showFeedback(feedback, "Actualizando producto...");
     await actualizarProductoRequest(idProducto, payload, sessionToken);
+    await cargarCategoriasInventario();
     showFeedback(feedback, "Producto actualizado correctamente");
     await cargarInventario();
   } catch (error) {
@@ -141,6 +164,7 @@ async function initInventario() {
     shell.innerHTML = renderSharedHeader({ active: "Inventario", userName: me.nombre });
     bindHeaderActions();
 
+    await cargarCategoriasInventario();
     await cargarInventario();
   } catch {
     clearSession();

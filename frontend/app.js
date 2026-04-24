@@ -1,7 +1,15 @@
+/*
+Archivo app.js:
+funciona como enrutado del frontend, ya que llama a cada ruta de archivos y los ejecuta.
+Este archivo es el que se llama desde el package.json para iniciar.
+*/
+
+//Librerías y modulos
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 

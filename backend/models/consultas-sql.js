@@ -11,6 +11,7 @@ export async function verificarCredencialesModel(usuario, contrasena) {
 	return rows[0] || null;
 }
 
+
 export async function obtenerProductosModel(categoria, precioMin, status, search) {
 	const query = `
 		SELECT

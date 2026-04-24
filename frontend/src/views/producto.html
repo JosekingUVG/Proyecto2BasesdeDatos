@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestion de Productos | Sistema de Inventario</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles/styles.css" />
+  </head>
+  <body>
+    <div id="app-shell"></div>
+
+    <main class="page-layout reveal-in">
+      <section class="panel-card">
+        <h1>Gestion de Productos</h1>
+        <div class="tab-buttons">
+          <button id="tab-agregar" class="btn-secondary" type="button">Agregar Nuevo Producto</button>
+          <button id="tab-actualizar" class="btn-ghost" type="button">Actualizar Producto Existente</button>
+        </div>
+
+        <section id="panel-agregar" class="subpanel">
+          <h2>Agregar Producto</h2>
+          <form id="form-agregar-producto" class="form-grid-3">
+            <label class="field-group">
+              Nombre del Producto
+              <input name="nombre" type="text" placeholder="Ej: Monitor 4K 27 pulgadas" required />
+            </label>
+            <label class="field-group">
+              Proveedor (ID)
+              <input name="id_proveedor" type="number" min="1" placeholder="Ej: 1" required />
+            </label>
+            <label class="field-group">
+              Categoria
+              <select name="categoria" required>
+                <option value="Electrónica">Electronica</option>
+                <option value="Muebles">Muebles</option>
+                <option value="Accesorios">Accesorios</option>
+              </select>
+            </label>
+            <label class="field-group">
+              Marca
+              <input name="marca" type="text" placeholder="Ej: Samsung" required />
+            </label>
+            <label class="field-group">
+              Estado
+              <select name="status_producto" required>
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+              </select>
+            </label>
+            <label class="field-group">
+              Precio
+              <input name="precio" type="number" min="0" step="0.01" required />
+            </label>
+            <label class="field-group">
+              Costo
+              <input name="costo" type="number" min="0" step="0.01" required />
+            </label>
+            <label class="field-group">
+              Cantidad inicial
+              <input name="cantidad" type="number" min="0" step="1" required />
+            </label>
+            <div class="field-group submit-cell">
+              <button class="btn-primary" type="submit">Agregar Producto</button>
+            </div>
+          </form>
+        </section>
+
+        <section id="panel-actualizar" class="subpanel hidden">
+          <h2>Actualizar Stock</h2>
+          <form id="form-actualizar-stock" class="form-grid-3">
+            <label class="field-group">
+              ID del producto
+              <input name="id_producto" type="number" min="1" required />
+            </label>
+            <label class="field-group">
+              Cantidad a agregar
+              <input name="cantidad" type="number" min="1" step="1" required />
+            </label>
+            <label class="field-group">
+              Costo unitario de nueva entrada
+              <input name="costo_nuevo" type="number" min="0" step="0.01" required />
+            </label>
+            <div class="field-group submit-cell">
+              <button class="btn-primary" type="submit">Actualizar Stock</button>
+            </div>
+          </form>
+        </section>
+
+        <p id="producto-feedback" class="feedback"></p>
+      </section>
+    </main>
+
+    <script type="module" src="/controllers/producto-dom.js"></script>
+  </body>
+</html>

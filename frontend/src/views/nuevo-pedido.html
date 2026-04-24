@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nuevo Pedido | Sistema de Inventario</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles/styles.css" />
+  </head>
+  <body>
+    <div id="app-shell"></div>
+
+    <main class="page-layout reveal-in">
+      <section id="pedido-step-nuevo" class="panel-card">
+        <h1>Nuevo Pedido</h1>
+
+        <div class="form-grid-4">
+          <label class="field-group" for="pedido-fecha">
+            Fecha del Pedido
+            <input id="pedido-fecha" type="date" />
+          </label>
+          <label class="field-group" for="pedido-categoria">
+            Categoria
+            <select id="pedido-categoria">
+              <option value="">Todas</option>
+              <option value="Electrónica">Electronica</option>
+              <option value="Muebles">Muebles</option>
+              <option value="Accesorios">Accesorios</option>
+            </select>
+          </label>
+          <label class="field-group" for="pedido-precio-min">
+            Precio minimo
+            <input id="pedido-precio-min" type="number" min="0" step="0.01" placeholder="Ej. 100" />
+          </label>
+          <label class="field-group" for="pedido-buscar">
+            Buscar Producto
+            <input id="pedido-buscar" type="text" placeholder="Buscar por nombre o marca..." />
+          </label>
+        </div>
+
+        <div class="actions-row">
+          <button id="pedido-filtrar" class="btn-secondary" type="button">Aplicar filtros</button>
+          <button id="pedido-limpiar" class="btn-ghost" type="button">Limpiar</button>
+        </div>
+
+        <section class="inventory-table-card compact">
+          <div class="table-head">
+            <h2>Lista de productos activos</h2>
+            <p id="pedido-feedback" class="feedback"></p>
+          </div>
+          <div id="pedido-lista" class="product-list"></div>
+        </section>
+
+        <div class="checkout-bar">
+          <p id="pedido-resumen" class="summary-line">Carrito vacio</p>
+          <button id="pedido-finalizar" class="btn-primary" type="button">Finalizar Pedido</button>
+        </div>
+      </section>
+
+      <section id="pedido-step-confirmar" class="panel-card hidden">
+        <p class="icon-title">🛒</p>
+        <h2>Revisar Pedido</h2>
+        <p class="supporting-text">Verifica los detalles antes de confirmar</p>
+        <p id="confirmar-fecha" class="summary-line"></p>
+
+        <section class="inventory-table-card compact">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Cantidad</th>
+                  <th>Precio unitario</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody id="confirmar-tabla"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="checkout-bar">
+          <p id="confirmar-total" class="summary-line strong"></p>
+          <div class="actions-row">
+            <button id="confirmar-volver" class="btn-ghost" type="button">Seguir Ordenando</button>
+            <button id="confirmar-enviar" class="btn-primary" type="button">Confirmar Pedido</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="pedido-step-realizado" class="panel-card hidden">
+        <p class="icon-title">✅</p>
+        <h2>¡Pedido Realizado con Exito!</h2>
+        <p class="supporting-text">Gracias por tu compra</p>
+        <p id="realizado-fecha" class="summary-line"></p>
+
+        <section class="inventory-table-card compact">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Cantidad</th>
+                  <th>Precio unitario</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody id="realizado-tabla"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="checkout-bar">
+          <p id="realizado-total" class="summary-line strong"></p>
+          <button id="realizado-home" class="btn-primary" type="button">Volver al Home</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/controllers/pedido-dom.js"></script>
+  </body>
+</html>

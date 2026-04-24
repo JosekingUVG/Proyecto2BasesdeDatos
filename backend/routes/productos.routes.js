@@ -1,4 +1,11 @@
 import express from "express";
+import {
+  deleteProductoController,
+  getProductosController,
+  postProductoController,
+  putProductoController,
+  putStockProductoController,
+} from "../controllers/endpoint.js";
 
 const router = express.Router();
 
@@ -28,7 +35,7 @@ const router = express.Router();
  *         description: Lista de productos
  */
 router.get("/productos", (req, res) => {
-  res.send("GET productos");
+  getProductosController(req, res);
 });
 
 
@@ -75,7 +82,7 @@ router.get("/productos", (req, res) => {
  *         description: Producto creado correctamente
  */
 router.post("/productos", (req, res) => {
-  res.send("POST producto");
+  postProductoController(req, res);
 });
 
 
@@ -118,7 +125,7 @@ router.post("/productos", (req, res) => {
  *         description: Producto no encontrado
  */
 router.put("/productos/:id/stock", (req, res) => {
-  res.send("PUT stock producto");
+  putStockProductoController(req, res);
 });
 
 
@@ -161,7 +168,7 @@ router.put("/productos/:id/stock", (req, res) => {
  *         description: Producto no encontrado
  */
 router.put("/productos/:id", (req, res) => {
-  res.send("PUT producto");
+  putProductoController(req, res);
 });
 
 
@@ -187,7 +194,7 @@ router.put("/productos/:id", (req, res) => {
  *         description: No se puede eliminar (por restricción de clave foránea)
  */
 router.delete("/productos/:id", (req, res) => {
-  res.send("DELETE producto");
+  deleteProductoController(req, res);
 });
 
 export default router;

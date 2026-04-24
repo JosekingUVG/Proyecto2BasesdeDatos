@@ -1,4 +1,9 @@
 import express from "express";
+import {
+  getVentaByIdController,
+  getVentasController,
+  postVentaController,
+} from "../controllers/endpoint.js";
 
 const router = express.Router();
 
@@ -50,7 +55,7 @@ const router = express.Router();
  *         description: Error en la transacción
  */
 router.post("/ventas", (req, res) => {
-  res.send("POST ventas");
+  postVentaController(req, res);
 });
 
 
@@ -104,7 +109,7 @@ router.post("/ventas", (req, res) => {
  *         description: Venta no encontrada
  */
 router.get("/ventas/:id", (req, res) => {
-  res.send("GET venta por id");
+  getVentaByIdController(req, res);
 });
 
 
@@ -135,7 +140,7 @@ router.get("/ventas/:id", (req, res) => {
  *                     type: string
  */
 router.get("/ventas", (req, res) => {
-  res.send("GET ventas");
+  getVentasController(req, res);
 });
 
 export default router;

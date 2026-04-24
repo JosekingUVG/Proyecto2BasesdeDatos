@@ -1,4 +1,10 @@
 import express from "express";
+import {
+  getReporteEmpleadosController,
+  getReporteFechasController,
+  getReporteProveedoresController,
+} from "../controllers/endpoint.js";
+
 const router = express.Router();
 
 /**
@@ -54,10 +60,8 @@ const router = express.Router();
  *                         type: number
  */
 router.get("/reportes/fechas", (req, res) => {
-  res.send("GET reporte por fechas");
+  getReporteFechasController(req, res);
 });
-
-export default router;
 
 /**
  * @swagger
@@ -70,7 +74,7 @@ export default router;
  *         description: Reporte por proveedor
  */
 router.get("/reportes/proveedores", (req, res) => {
-  res.send("GET reporte por proveedores");
+  getReporteProveedoresController(req, res);
 });
 
 /**
@@ -92,5 +96,7 @@ router.get("/reportes/proveedores", (req, res) => {
  *         description: Reporte por empleado
  */
 router.get("/reportes/empleados", (req, res) => {
-    res.send("GET reporte por empleados");
+  getReporteEmpleadosController(req, res);
 });
+
+export default router;

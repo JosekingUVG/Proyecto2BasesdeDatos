@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Ingreso | Sistema de Inventario</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="/styles/styles.css" />
+	</head>
+	<body>
+		<main class="login-layout">
+			<section class="brand-panel" aria-hidden="true">
+				<div class="brand-badge">Inventario y Ventas</div>
+				<h1>Controla tu tienda con decisiones claras</h1>
+				<p>
+					Gestiona productos, ventas y reportes en una sola plataforma con flujo en tiempo real.
+				</p>
+				<div class="brand-stats">
+					<article>
+						<span class="stat-number">24/7</span>
+						<span class="stat-label">Monitoreo de stock</span>
+					</article>
+					<article>
+						<span class="stat-number">+100</span>
+						<span class="stat-label">Productos escalables</span>
+					</article>
+					<article>
+						<span class="stat-number">SQL</span>
+						<span class="stat-label">Datos auditables</span>
+					</article>
+				</div>
+			</section>
+
+			<section class="login-panel" aria-label="Formulario de inicio de sesion">
+				<div class="login-card reveal-in">
+					<div class="card-header">
+						<p class="kicker">Bienvenido</p>
+						<h2>Inicia sesion</h2>
+						<p class="supporting-text">Ingresa con tu usuario y contrasena para continuar.</p>
+					</div>
+
+					<form id="login-form" novalidate>
+						<label class="field-group" for="usuario">
+							Usuario
+							<input
+								id="usuario"
+								name="usuario"
+								type="text"
+								autocomplete="username"
+								placeholder="Ej. juan"
+								required
+							/>
+						</label>
+
+						<label class="field-group" for="contrasena">
+							Contrasena
+							<input
+								id="contrasena"
+								name="contrasena"
+								type="password"
+								autocomplete="current-password"
+								placeholder="Tu contrasena"
+								required
+							/>
+						</label>
+
+						<button id="login-button" type="submit" class="btn-primary">Entrar al sistema</button>
+					</form>
+
+					<section id="session-panel" class="session-panel hidden" aria-live="polite">
+						<p class="session-title">Sesion activa</p>
+						<p id="session-user" class="session-user"></p>
+						<div class="session-actions">
+							<button id="verify-button" type="button" class="btn-secondary">Verificar token</button>
+							<button id="logout-button" type="button" class="btn-ghost">Cerrar sesion</button>
+						</div>
+					</section>
+
+					<p id="feedback" class="feedback" aria-live="polite"></p>
+				</div>
+			</section>
+		</main>
+
+		<script type="module" src="/controllers/logica-dom.js"></script>
+	</body>
+</html>

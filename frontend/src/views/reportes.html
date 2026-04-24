@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reportes | Sistema de Inventario</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles/styles.css" />
+  </head>
+  <body>
+    <div id="app-shell"></div>
+
+    <main class="page-layout reveal-in">
+      <section class="panel-card">
+        <h1>Reportes</h1>
+        <div class="tab-buttons">
+          <button id="tab-r-fechas" class="btn-secondary" type="button">Reporte por Fechas</button>
+          <button id="tab-r-proveedores" class="btn-ghost" type="button">Reporte por Proveedor</button>
+          <button id="tab-r-empleados" class="btn-ghost" type="button">Reporte por Empleado</button>
+        </div>
+
+        <section id="panel-r-fechas" class="subpanel">
+          <div class="form-grid-3">
+            <label class="field-group">
+              Fecha inicio
+              <input id="fecha-inicio" type="date" />
+            </label>
+            <label class="field-group">
+              Fecha fin
+              <input id="fecha-fin" type="date" />
+            </label>
+            <div class="field-group submit-cell">
+              <button id="btn-r-fechas" class="btn-primary" type="button">Consultar</button>
+            </div>
+          </div>
+          <div id="resumen-fechas" class="summary-box"></div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Total vendido (unidades)</th>
+                  <th>Total ganado</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-r-fechas"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="panel-r-proveedores" class="subpanel hidden">
+          <div class="actions-row">
+            <button id="btn-r-proveedores" class="btn-primary" type="button">Consultar</button>
+          </div>
+          <div id="resumen-proveedores" class="summary-box"></div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Proveedor</th>
+                  <th>Total ventas (unidades)</th>
+                  <th>Mes</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-r-proveedores"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="panel-r-empleados" class="subpanel hidden">
+          <div class="form-grid-3">
+            <label class="field-group">
+              Seleccion de mes
+              <input id="mes-empleado" type="date" />
+            </label>
+            <div class="field-group submit-cell">
+              <button id="btn-r-empleados" class="btn-primary" type="button">Consultar</button>
+            </div>
+          </div>
+          <div id="resumen-empleados" class="summary-box"></div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Empleado</th>
+                  <th>Numero de ventas</th>
+                  <th>Total vendido</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-r-empleados"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <p id="reportes-feedback" class="feedback"></p>
+      </section>
+    </main>
+
+    <script type="module" src="/controllers/reportes-dom.js"></script>
+  </body>
+</html>

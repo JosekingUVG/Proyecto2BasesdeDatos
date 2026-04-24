@@ -1,4 +1,6 @@
 import express from "express";
+import { loginController, logoutController, meController } from "../controllers/endpoint.js";
+
 const router = express.Router();
 
 /**
@@ -41,7 +43,7 @@ const router = express.Router();
  *         description: Credenciales inválidas
  */
 router.post("/login", (req, res) => {
-  res.send("login endpoint");
+  loginController(req, res);
 });
 
 /**
@@ -66,7 +68,7 @@ router.post("/login", (req, res) => {
  *         description: No autenticado
  */
 router.get("/me", (req, res) => {
-  res.send("me endpoint");
+  meController(req, res);
 });
 
 /**
@@ -80,7 +82,7 @@ router.get("/me", (req, res) => {
  *         description: Logout exitoso
  */
 router.post("/logout", (req, res) => {
-  res.send("logout endpoint");
+  logoutController(req, res);
 });
 
 export default router;

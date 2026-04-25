@@ -1,3 +1,7 @@
+/*
+  * Archivo: reportes.routes.js
+  * Descripción: Define las rutas relacionadas con la generación de reportes, incluyendo el reporte de ventas por rango de fechas, el reporte de ventas por proveedor y el reporte de ventas por empleado en un mes específico, utilizando controladores específicos para manejar cada una de estas operaciones y documentando las rutas con Swagger para facilitar su uso y comprensión.
+*/
 import express from "express";
 import {
   getReporteEmpleadosController,

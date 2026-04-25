@@ -1,3 +1,7 @@
+/*
+  * Archivo: ventas.routes.js
+  * Descripción: Define las rutas relacionadas con la gestión de ventas, incluyendo la creación de nuevas ventas, la obtención del detalle de una venta específica y la obtención de un listado de ventas realizadas, utilizando controladores específicos para manejar cada una de estas operaciones y documentando las rutas con Swagger para facilitar su uso y comprensión.
+*/
 import express from "express";
 import {
   getVentaByIdController,

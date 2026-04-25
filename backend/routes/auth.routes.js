@@ -1,3 +1,7 @@
+/*
+  * Archivo: auth.routes.js
+  * Descripción: Define las rutas relacionadas con la autenticación de usuarios, incluyendo el login, logout y la obtención de información del usuario autenticado, utilizando controladores específicos para manejar cada una de estas operaciones y documentando las rutas con Swagger para facilitar su uso y comprensión.
+*/
 import express from "express";
 import { loginController, logoutController, meController } from "../controllers/endpoint.js";
 

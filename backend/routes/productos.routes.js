@@ -1,3 +1,7 @@
+/*
+  * Archivo: productos.routes.js
+  * Descripción: Define las rutas relacionadas con la gestión de productos, incluyendo la obtención del inventario, la creación de nuevos productos, la actualización de stock y costo promedio, la actualización de información general y la eliminación de productos, utilizando controladores específicos para manejar cada una de estas operaciones y documentando las rutas con Swagger para facilitar su uso y comprensión.
+*/
 import express from "express";
 import {
   deleteProductoController,

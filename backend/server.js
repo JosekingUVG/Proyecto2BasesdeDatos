@@ -1,3 +1,8 @@
+/*
+  * Archivo: server.js
+  * Descripción: Configura y levanta el servidor Express, definiendo las rutas para autenticación, productos, ventas y reportes, así como la documentación de la API con Swagger, utilizando controladores específicos para manejar cada una de estas operaciones y asegurando que el servidor esté listo para recibir solicitudes en el puerto configurado.
+*/
+
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";

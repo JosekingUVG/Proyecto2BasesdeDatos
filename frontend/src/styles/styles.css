@@ -611,6 +611,10 @@ tbody tr:hover {
 	flex-wrap: wrap;
 }
 
+.page-feedback {
+	margin-bottom: 1rem;
+}
+
 .feedback {
 	margin: 1rem 0 0;
 	min-height: 1.2rem;

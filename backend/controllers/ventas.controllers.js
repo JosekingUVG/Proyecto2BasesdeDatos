@@ -9,11 +9,14 @@ export async function postVentaController(req, res) {
 		const venta = await crearVentaService(req.models, req.body);
 		return res.status(200).json(venta);
 	} catch (error) {
+		const mensaje =
+			error?.parent?.message ||
+			error?.original?.message ||
+			error.message ||
+			"No se pudo registrar la venta";
 		const esTransaccion =
-			error.message?.includes("transaccion") ||
-			error.message?.includes("Stock") ||
-			error.message?.includes("Producto");
-		return res.status(esTransaccion ? 400 : 500).json({ message: error.message });
+			/transaccion|stock|producto|permiso|permission|insufficient/i.test(mensaje);
+		return res.status(esTransaccion ? 400 : 500).json({ message: mensaje });
 	}
 }
 

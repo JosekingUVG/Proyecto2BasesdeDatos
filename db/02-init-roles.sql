@@ -12,6 +12,8 @@ CREATE ROLE rol_admin;
 
 -- Permisos para el Vendedor
 GRANT SELECT ON public.producto, public.proveedor TO rol_vendedor;
+-- Solo cantidad: requerido por sp_registrar_venta al descontar stock (no puede editar catalogo)
+GRANT UPDATE (cantidad) ON public.producto TO rol_vendedor;
 GRANT SELECT, INSERT ON public.venta, public.detalle_venta TO rol_vendedor;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO rol_vendedor; -- Requerido para los campos SERIAL
 

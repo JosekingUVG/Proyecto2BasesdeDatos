@@ -336,7 +336,19 @@ async function confirmarPedido() {
 		return;
 	}
 
+	if (!sessionUser?.id_empleado) {
+		showFeedback(feedback, "Sesion invalida. Vuelve a iniciar sesion.", true);
+		return;
+	}
+
+	const btnEnviar = confirmarEnviar;
+	const labelOriginal = btnEnviar.textContent;
+
 	try {
+		btnEnviar.disabled = true;
+		btnEnviar.textContent = "Procesando...";
+		showFeedback(feedback, "Registrando venta...");
+
 		const payload = {
 			id_empleado: sessionUser.id_empleado,
 			productos: cart.map((item) => ({
@@ -354,6 +366,9 @@ async function confirmarPedido() {
 	} catch (error) {
 		setStep("confirmar");
 		showFeedback(feedback, error.message || "No se pudo registrar la venta", true);
+	} finally {
+		btnEnviar.disabled = false;
+		btnEnviar.textContent = labelOriginal;
 	}
 }
 

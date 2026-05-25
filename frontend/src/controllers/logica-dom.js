@@ -6,6 +6,7 @@ import {
 	showFeedback,
 } from "../components/elementos-reutilizables.js";
 import { loginRequest, logoutRequest, meRequest } from "../services/consumo-api.js";
+import { formatRolLabel, getDefaultRoute } from "../services/roles.js";
 
 const form = document.getElementById("login-form");
 const feedback = document.getElementById("feedback");
@@ -19,7 +20,8 @@ function renderSessionState() {
 	const { token, user } = readSession();
 	if (token && user) {
 		sessionPanel.classList.remove("hidden");
-		sessionUser.textContent = `${user.nombre} (ID ${user.id_empleado})`;
+		const rolTexto = user.rol ? ` · ${formatRolLabel(user.rol)}` : "";
+		sessionUser.textContent = `${user.nombre} (ID ${user.id_empleado})${rolTexto}`;
 	} else {
 		sessionPanel.classList.add("hidden");
 		sessionUser.textContent = "";
@@ -33,7 +35,7 @@ async function validateAndRedirectIfAuthenticated() {
 	try {
 		const me = await meRequest(token);
 		saveSession(token, me);
-		window.location.href = "/inventario";
+		window.location.href = getDefaultRoute(me.rol);
 	} catch {
 		clearSession();
 		renderSessionState();
@@ -60,7 +62,7 @@ async function onSubmitLogin(event) {
 		const me = await meRequest(result.token);
 		saveSession(result.token, me);
 		showFeedback(feedback, `Sesion iniciada: ${me.nombre}`);
-		window.location.href = "/inventario";
+		window.location.href = getDefaultRoute(me.rol);
 	} catch (error) {
 		clearSession();
 		renderSessionState();
@@ -82,7 +84,8 @@ async function onVerifyToken() {
 		const me = await meRequest(token);
 		saveSession(token, me);
 		renderSessionState();
-		showFeedback(feedback, `Token valido para ${me.nombre}`);
+		const rolTexto = me.rol ? ` (${formatRolLabel(me.rol)})` : "";
+		showFeedback(feedback, `Token valido para ${me.nombre}${rolTexto}`);
 	} catch (error) {
 		clearSession();
 		renderSessionState();

@@ -1,17 +1,18 @@
 import {
-  clearSession,
-  readSession,
-  renderSharedHeader,
-  saveSession,
-  showFeedback,
+	clearSession,
+	readSession,
+	renderSharedHeader,
+	saveSession,
+	showFeedback,
 } from "../components/elementos-reutilizables.js";
 import {
-  logoutRequest,
-  meRequest,
-  reporteEmpleadosRequest,
-  reporteFechasRequest,
-  reporteProveedoresRequest,
+	logoutRequest,
+	meRequest,
+	reporteEmpleadosRequest,
+	reporteFechasRequest,
+	reporteProveedoresRequest,
 } from "../services/consumo-api.js";
+import { assertPageAccess, getDefaultRoute } from "../services/roles.js";
 
 const shell = document.getElementById("app-shell");
 const feedback = document.getElementById("reportes-feedback");
@@ -40,182 +41,197 @@ const tablaEmpleados = document.getElementById("tabla-r-empleados");
 const resumenEmpleados = document.getElementById("resumen-empleados");
 
 let sessionToken = "";
+let sessionUser = null;
 
 function formatCurrency(value) {
-  return `Q ${Number(value || 0).toFixed(2)}`;
+	return `Q ${Number(value || 0).toFixed(2)}`;
 }
 
 function redirectToLogin() {
-  window.location.href = "/";
+	window.location.href = "/";
+}
+
+function redirectToDefault() {
+	window.location.href = getDefaultRoute(sessionUser?.rol);
 }
 
 function bindHeaderActions() {
-  const logoutButton = document.getElementById("header-logout");
-  if (!logoutButton) return;
+	const logoutButton = document.getElementById("header-logout");
+	if (!logoutButton) return;
 
-  logoutButton.addEventListener("click", async () => {
-    try {
-      if (sessionToken) {
-        await logoutRequest(sessionToken);
-      }
-    } catch {
-      // No bloquea cierre local de sesion.
-    } finally {
-      clearSession();
-      redirectToLogin();
-    }
-  });
+	logoutButton.addEventListener("click", async () => {
+		try {
+			if (sessionToken) {
+				await logoutRequest(sessionToken);
+			}
+		} catch {
+			// No bloquea cierre local de sesion.
+		} finally {
+			clearSession();
+			redirectToLogin();
+		}
+	});
 }
 
 function switchTab(tab) {
-  const map = {
-    fechas: [panelFechas, tabFechas],
-    proveedores: [panelProveedores, tabProveedores],
-    empleados: [panelEmpleados, tabEmpleados],
-  };
+	const map = {
+		fechas: [panelFechas, tabFechas],
+		proveedores: [panelProveedores, tabProveedores],
+		empleados: [panelEmpleados, tabEmpleados],
+	};
 
-  Object.entries(map).forEach(([key, value]) => {
-    const isActive = key === tab;
-    value[0].classList.toggle("hidden", !isActive);
-    value[1].className = isActive ? "btn-secondary" : "btn-ghost";
-  });
+	Object.entries(map).forEach(([key, value]) => {
+		const isActive = key === tab;
+		value[0].classList.toggle("hidden", !isActive);
+		value[1].className = isActive ? "btn-secondary" : "btn-ghost";
+	});
 }
 
 function setTable(tbody, htmlRows, colspan = 3) {
-  tbody.innerHTML = htmlRows || `<tr><td colspan="${colspan}" class="empty-row">Sin datos</td></tr>`;
+	tbody.innerHTML = htmlRows || `<tr><td colspan="${colspan}" class="empty-row">Sin datos</td></tr>`;
 }
 
 async function consultarFechas() {
-  if (!fechaInicio.value || !fechaFin.value) {
-    showFeedback(feedback, "Selecciona fecha inicio y fecha fin", true);
-    return;
-  }
+	if (!fechaInicio.value || !fechaFin.value) {
+		showFeedback(feedback, "Selecciona fecha inicio y fecha fin", true);
+		return;
+	}
 
-  try {
-    const result = await reporteFechasRequest(fechaInicio.value, fechaFin.value, sessionToken);
+	try {
+		const result = await reporteFechasRequest(fechaInicio.value, fechaFin.value, sessionToken);
 
-    resumenFechas.innerHTML = `
+		resumenFechas.innerHTML = `
       <p>Total de ventas en el rango: <strong>${result.resumen.total_unidades}</strong></p>
       <p>Ganancia en el rango: <strong>${formatCurrency(result.resumen.total_ganancia)}</strong></p>
       <p>Ingresos en el rango: <strong>${formatCurrency(result.resumen.total_ingresos)}</strong></p>
     `;
 
-    const rows = (result.detalle || [])
-      .map(
-        (item) => `
+		const rows = (result.detalle || [])
+			.map(
+				(item) => `
           <tr>
             <td>${String(item.fecha).slice(0, 10)}</td>
             <td>${item.total_unidades}</td>
             <td>${formatCurrency(item.total_ganancia)}</td>
           </tr>
         `,
-      )
-      .join("");
+			)
+			.join("");
 
-    setTable(tablaFechas, rows, 3);
-    showFeedback(feedback, "Reporte por fechas cargado");
-  } catch (error) {
-    showFeedback(feedback, error.message || "No se pudo cargar el reporte", true);
-  }
+		setTable(tablaFechas, rows, 3);
+		showFeedback(feedback, "Reporte por fechas cargado");
+	} catch (error) {
+		showFeedback(feedback, error.message || "No se pudo cargar el reporte", true);
+	}
 }
 
 async function consultarProveedores() {
-  try {
-    const result = await reporteProveedoresRequest(sessionToken);
+	try {
+		const result = await reporteProveedoresRequest(sessionToken);
 
-    resumenProveedores.innerHTML = `
+		resumenProveedores.innerHTML = `
       <p>Total ventas (todas): <strong>${result.resumen.total_unidades}</strong></p>
       <p>Numero de proveedores: <strong>${result.resumen.total_proveedores}</strong></p>
     `;
 
-    const rows = (result.detalle || [])
-      .map(
-        (item) => `
+		const rows = (result.detalle || [])
+			.map(
+				(item) => `
           <tr>
             <td>${item.nombre_proveedor}</td>
             <td>${item.total_unidades}</td>
             <td>${String(item.mes).slice(0, 10)}</td>
           </tr>
         `,
-      )
-      .join("");
+			)
+			.join("");
 
-    setTable(tablaProveedores, rows, 3);
-    showFeedback(feedback, "Reporte por proveedor cargado");
-  } catch (error) {
-    showFeedback(feedback, error.message || "No se pudo cargar el reporte", true);
-  }
+		setTable(tablaProveedores, rows, 3);
+		showFeedback(feedback, "Reporte por proveedor cargado");
+	} catch (error) {
+		showFeedback(feedback, error.message || "No se pudo cargar el reporte", true);
+	}
 }
 
 async function consultarEmpleados() {
-  if (!mesEmpleado.value) {
-    showFeedback(feedback, "Selecciona un mes para consultar", true);
-    return;
-  }
+	if (!mesEmpleado.value) {
+		showFeedback(feedback, "Selecciona un mes para consultar", true);
+		return;
+	}
 
-  try {
-    const result = await reporteEmpleadosRequest(mesEmpleado.value, sessionToken);
+	try {
+		const result = await reporteEmpleadosRequest(mesEmpleado.value, sessionToken);
 
-    resumenEmpleados.innerHTML = `
+		resumenEmpleados.innerHTML = `
       <p>Total de ventas atendidas: <strong>${result.resumen.total_ventas}</strong></p>
       <p>Total vendido: <strong>${formatCurrency(result.resumen.total_vendido)}</strong></p>
     `;
 
-    const rows = (result.detalle || [])
-      .map(
-        (item) => `
+		const rows = (result.detalle || [])
+			.map(
+				(item) => `
           <tr>
             <td>${item.nombre}</td>
             <td>${item.numero_ventas}</td>
             <td>${formatCurrency(item.total_vendido)}</td>
           </tr>
         `,
-      )
-      .join("");
+			)
+			.join("");
 
-    setTable(tablaEmpleados, rows, 3);
-    showFeedback(feedback, "Reporte por empleado cargado");
-  } catch (error) {
-    showFeedback(feedback, error.message || "No se pudo cargar el reporte", true);
-  }
+		setTable(tablaEmpleados, rows, 3);
+		showFeedback(feedback, "Reporte por empleado cargado");
+	} catch (error) {
+		showFeedback(feedback, error.message || "No se pudo cargar el reporte", true);
+	}
 }
 
 function bindEvents() {
-  tabFechas.addEventListener("click", () => switchTab("fechas"));
-  tabProveedores.addEventListener("click", () => switchTab("proveedores"));
-  tabEmpleados.addEventListener("click", () => switchTab("empleados"));
+	tabFechas.addEventListener("click", () => switchTab("fechas"));
+	tabProveedores.addEventListener("click", () => switchTab("proveedores"));
+	tabEmpleados.addEventListener("click", () => switchTab("empleados"));
 
-  btnFechas.addEventListener("click", consultarFechas);
-  btnProveedores.addEventListener("click", consultarProveedores);
-  btnEmpleados.addEventListener("click", consultarEmpleados);
+	btnFechas.addEventListener("click", consultarFechas);
+	btnProveedores.addEventListener("click", consultarProveedores);
+	btnEmpleados.addEventListener("click", consultarEmpleados);
 }
 
 async function init() {
-  const { token } = readSession();
-  if (!token) {
-    redirectToLogin();
-    return;
-  }
+	const { token } = readSession();
+	if (!token) {
+		redirectToLogin();
+		return;
+	}
 
-  try {
-    const me = await meRequest(token);
-    sessionToken = token;
-    saveSession(token, me);
+	try {
+		const me = await meRequest(token);
+		sessionToken = token;
+		sessionUser = me;
+		saveSession(token, me);
 
-    shell.innerHTML = renderSharedHeader({ active: "Reportes", userName: me.nombre });
-    bindHeaderActions();
-    bindEvents();
+		if (!assertPageAccess(me.rol, window.location.pathname)) {
+			redirectToDefault();
+			return;
+		}
 
-    const today = new Date().toISOString().slice(0, 10);
-    fechaInicio.value = today;
-    fechaFin.value = today;
-    mesEmpleado.value = today;
+		shell.innerHTML = renderSharedHeader({
+			active: "Reportes",
+			userName: me.nombre,
+			rol: me.rol,
+		});
+		bindHeaderActions();
+		bindEvents();
 
-    consultarFechas();
-  } catch {
-    clearSession();
-    redirectToLogin();
-  }
+		const today = new Date().toISOString().slice(0, 10);
+		fechaInicio.value = today;
+		fechaFin.value = today;
+		mesEmpleado.value = today;
+
+		consultarFechas();
+	} catch {
+		clearSession();
+		redirectToLogin();
+	}
 }
 
 init();

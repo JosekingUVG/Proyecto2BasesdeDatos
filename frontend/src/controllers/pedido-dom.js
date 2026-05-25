@@ -1,16 +1,17 @@
 import {
-  clearSession,
-  readSession,
-  renderSharedHeader,
-  saveSession,
-  showFeedback,
+	clearSession,
+	readSession,
+	renderSharedHeader,
+	saveSession,
+	showFeedback,
 } from "../components/elementos-reutilizables.js";
 import {
-  crearVentaRequest,
-  inventarioRequest,
-  logoutRequest,
-  meRequest,
+	crearVentaRequest,
+	inventarioRequest,
+	logoutRequest,
+	meRequest,
 } from "../services/consumo-api.js";
+import { assertPageAccess, getDefaultRoute } from "../services/roles.js";
 
 const CART_KEY = "pedido_cart";
 
@@ -46,93 +47,98 @@ let sessionUser = null;
 let productosActivos = [];
 
 function setCategoriaOptions(categorias) {
-  const selectedValue = pedidoCategoria.value;
-  const options = [
-    '<option value="">Todas</option>',
-    ...categorias.map((categoria) => `<option value="${categoria}">${categoria}</option>`),
-  ];
+	const selectedValue = pedidoCategoria.value;
+	const options = [
+		'<option value="">Todas</option>',
+		...categorias.map((categoria) => `<option value="${categoria}">${categoria}</option>`),
+	];
 
-  pedidoCategoria.innerHTML = options.join("");
+	pedidoCategoria.innerHTML = options.join("");
 
-  if (selectedValue && categorias.includes(selectedValue)) {
-    pedidoCategoria.value = selectedValue;
-  }
+	if (selectedValue && categorias.includes(selectedValue)) {
+		pedidoCategoria.value = selectedValue;
+	}
 }
 
 function formatCurrency(value) {
-  return `Q ${Number(value || 0).toFixed(2)}`;
+	return `Q ${Number(value || 0).toFixed(2)}`;
 }
 
 function formatFechaLarga(value) {
-  const fecha = new Date(value);
-  return fecha.toLocaleDateString("es-GT", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+	const fecha = new Date(value);
+	return fecha.toLocaleDateString("es-GT", {
+		day: "numeric",
+		month: "long",
+		year: "numeric",
+	});
 }
 
 function redirectToLogin() {
-  window.location.href = "/";
+	window.location.href = "/";
+}
+
+function redirectToDefault() {
+	window.location.href = getDefaultRoute(sessionUser?.rol);
 }
 
 function getCart() {
-  const raw = sessionStorage.getItem(CART_KEY);
-  return raw ? JSON.parse(raw) : [];
+	const raw = sessionStorage.getItem(CART_KEY);
+	return raw ? JSON.parse(raw) : [];
 }
 
 function setCart(cart) {
-  sessionStorage.setItem(CART_KEY, JSON.stringify(cart));
+	sessionStorage.setItem(CART_KEY, JSON.stringify(cart));
 }
 
 function resetCart() {
-  sessionStorage.removeItem(CART_KEY);
+	sessionStorage.removeItem(CART_KEY);
 }
 
 function getFiltros() {
-  return {
-    categoria: pedidoCategoria.value,
-    precio_min: pedidoPrecioMin.value,
-    status: "activo",
-    search: pedidoBuscar.value.trim(),
-  };
+	return {
+		categoria: pedidoCategoria.value,
+		precio_min: pedidoPrecioMin.value,
+		status: "activo",
+		search: pedidoBuscar.value.trim(),
+	};
 }
 
 function getNombreProducto(item) {
-  return `${item.categoria || "Producto"} ${item.marca || ""}`.trim();
+	return `${item.categoria || "Producto"} ${item.marca || ""}`.trim();
 }
 
 function updateCartSummary() {
-  const cart = getCart();
-  if (cart.length === 0) {
-    pedidoResumen.textContent = "Carrito vacio";
-    return;
-  }
+	const cart = getCart();
+	if (cart.length === 0) {
+		pedidoResumen.textContent = "Carrito vacio";
+		return;
+	}
 
-  const totalItems = cart.reduce((acc, item) => acc + item.cantidad, 0);
-  const totalAmount = cart.reduce((acc, item) => acc + item.cantidad * Number(item.precio), 0);
-  pedidoResumen.textContent = `Productos: ${totalItems} | Total parcial: ${formatCurrency(totalAmount)}`;
+	const totalItems = cart.reduce((acc, item) => acc + item.cantidad, 0);
+	const totalAmount = cart.reduce((acc, item) => acc + item.cantidad * Number(item.precio), 0);
+	pedidoResumen.textContent = `Productos: ${totalItems} | Total parcial: ${formatCurrency(totalAmount)}`;
 }
 
 function renderListaProductos() {
-  const data = productosActivos;
+	const data = productosActivos;
 
-  if (data.length === 0) {
-    pedidoLista.innerHTML = '<p class="empty-row">No hay productos activos con esos filtros.</p>';
-    return;
-  }
+	if (data.length === 0) {
+		pedidoLista.innerHTML = '<p class="empty-row">No hay productos activos con esos filtros.</p>';
+		return;
+	}
 
-  const cart = getCart();
-  pedidoLista.innerHTML = data
-    .map((item) => {
-      const inCart = cart.find((c) => c.id_producto === item.id_producto);
-      const cantidad = inCart ? inCart.cantidad : 0;
+	const cart = getCart();
+	pedidoLista.innerHTML = data
+		.map((item) => {
+			const inCart = cart.find((c) => c.id_producto === item.id_producto);
+			const cantidad = inCart ? inCart.cantidad : 0;
+			const stock = item.cantidad ?? 0;
 
-      return `
+			return `
         <article class="product-item">
           <div>
             <p class="product-name">${getNombreProducto(item)}</p>
-            <p class="product-brand">${item.marca || "-"}</p>
+            <p class="product-brand">${item.marca || "-"} · Stock: ${stock}</p>
           </div>
           <p class="product-price">${formatCurrency(item.precio)}</p>
           <div class="qty-control" data-id="${item.id_producto}">
@@ -143,25 +149,25 @@ function renderListaProductos() {
           <button class="btn-secondary js-agregar" type="button" data-id="${item.id_producto}">Agregar</button>
         </article>
       `;
-    })
-    .join("");
+		})
+		.join("");
 }
 
 function setStep(step) {
-  stepNuevo.classList.toggle("hidden", step !== "nuevo");
-  stepConfirmar.classList.toggle("hidden", step !== "confirmar");
-  stepRealizado.classList.toggle("hidden", step !== "realizado");
+	stepNuevo.classList.toggle("hidden", step !== "nuevo");
+	stepConfirmar.classList.toggle("hidden", step !== "confirmar");
+	stepRealizado.classList.toggle("hidden", step !== "realizado");
 }
 
 function renderConfirmTable(tableTarget, cart) {
-  if (cart.length === 0) {
-    tableTarget.innerHTML = '<tr><td colspan="4" class="empty-row">No hay productos</td></tr>';
-    return;
-  }
+	if (cart.length === 0) {
+		tableTarget.innerHTML = '<tr><td colspan="4" class="empty-row">No hay productos</td></tr>';
+		return;
+	}
 
-  tableTarget.innerHTML = cart
-    .map(
-      (item) => `
+	tableTarget.innerHTML = cart
+		.map(
+			(item) => `
         <tr>
           <td>${item.nombre}</td>
           <td>${item.cantidad}</td>
@@ -169,229 +175,253 @@ function renderConfirmTable(tableTarget, cart) {
           <td>${formatCurrency(item.cantidad * Number(item.precio))}</td>
         </tr>
       `,
-    )
-    .join("");
+		)
+		.join("");
 }
 
 function renderConfirmView() {
-  const cart = getCart();
-  const fechaValue = pedidoFecha.value || new Date().toISOString().slice(0, 10);
-  const total = cart.reduce((acc, item) => acc + item.cantidad * Number(item.precio), 0);
+	const cart = getCart();
+	const fechaValue = pedidoFecha.value || new Date().toISOString().slice(0, 10);
+	const total = cart.reduce((acc, item) => acc + item.cantidad * Number(item.precio), 0);
 
-  confirmarFecha.textContent = `Fecha del pedido: ${formatFechaLarga(fechaValue)}`;
-  renderConfirmTable(confirmarTabla, cart);
-  confirmarTotal.textContent = `Total Final: ${formatCurrency(total)}`;
+	confirmarFecha.textContent = `Fecha del pedido: ${formatFechaLarga(fechaValue)}`;
+	renderConfirmTable(confirmarTabla, cart);
+	confirmarTotal.textContent = `Total Final: ${formatCurrency(total)}`;
 }
 
 function renderRealizadoView() {
-  const cart = getCart();
-  const fechaValue = pedidoFecha.value || new Date().toISOString().slice(0, 10);
-  const total = cart.reduce((acc, item) => acc + item.cantidad * Number(item.precio), 0);
+	const cart = getCart();
+	const fechaValue = pedidoFecha.value || new Date().toISOString().slice(0, 10);
+	const total = cart.reduce((acc, item) => acc + item.cantidad * Number(item.precio), 0);
 
-  realizadoFecha.textContent = `Fecha del pedido: ${formatFechaLarga(fechaValue)}`;
-  renderConfirmTable(realizadoTabla, cart);
-  realizadoTotal.textContent = `Total Final: ${formatCurrency(total)}`;
+	realizadoFecha.textContent = `Fecha del pedido: ${formatFechaLarga(fechaValue)}`;
+	renderConfirmTable(realizadoTabla, cart);
+	realizadoTotal.textContent = `Total Final: ${formatCurrency(total)}`;
 }
 
 function bindHeaderActions() {
-  const logoutButton = document.getElementById("header-logout");
-  if (!logoutButton) return;
+	const logoutButton = document.getElementById("header-logout");
+	if (!logoutButton) return;
 
-  logoutButton.addEventListener("click", async () => {
-    try {
-      if (sessionToken) {
-        await logoutRequest(sessionToken);
-      }
-    } catch {
-      // No bloquea limpieza local de sesion.
-    } finally {
-      clearSession();
-      resetCart();
-      redirectToLogin();
-    }
-  });
+	logoutButton.addEventListener("click", async () => {
+		try {
+			if (sessionToken) {
+				await logoutRequest(sessionToken);
+			}
+		} catch {
+			// No bloquea limpieza local de sesion.
+		} finally {
+			clearSession();
+			resetCart();
+			redirectToLogin();
+		}
+	});
 }
 
 async function cargarProductos() {
-  try {
-    showFeedback(feedback, "Cargando productos...");
-    const productos = await inventarioRequest(getFiltros(), sessionToken);
+	try {
+		showFeedback(feedback, "Cargando productos...");
+		const productos = await inventarioRequest(getFiltros(), sessionToken);
 
-    productosActivos = productos;
-    renderListaProductos();
-    showFeedback(feedback, `Productos disponibles: ${productosActivos.length}`);
-  } catch (error) {
-    productosActivos = [];
-    renderListaProductos();
-    showFeedback(feedback, error.message || "No se pudo cargar productos", true);
-  }
+		productosActivos = productos.filter((p) => p.status_producto === "activo");
+		renderListaProductos();
+		showFeedback(feedback, `Productos disponibles: ${productosActivos.length}`);
+	} catch (error) {
+		productosActivos = [];
+		renderListaProductos();
+		showFeedback(feedback, error.message || "No se pudo cargar productos", true);
+	}
 }
 
 async function cargarCategoriasPedido() {
-  const productos = await inventarioRequest({ status: "activo" }, sessionToken);
-  const categorias = [...new Set(productos.map((item) => item.categoria).filter(Boolean))];
-  setCategoriaOptions(categorias);
+	const productos = await inventarioRequest({ status: "activo" }, sessionToken);
+	const categorias = [...new Set(productos.map((item) => item.categoria).filter(Boolean))];
+	setCategoriaOptions(categorias);
 }
 
 function handleCantidad(idProducto, delta) {
-  const cart = getCart();
-  const index = cart.findIndex((item) => item.id_producto === idProducto);
+	const cart = getCart();
+	const index = cart.findIndex((item) => item.id_producto === idProducto);
+	const product = productosActivos.find((p) => p.id_producto === idProducto);
+	if (!product) return;
 
-  if (index === -1) {
-    if (delta > 0) {
-      const product = productosActivos.find((p) => p.id_producto === idProducto);
-      if (!product) return;
-      cart.push({
-        id_producto: product.id_producto,
-        nombre: getNombreProducto(product),
-        precio: Number(product.precio),
-        cantidad: 1,
-      });
-    }
-  } else {
-    cart[index].cantidad = Math.max(0, cart[index].cantidad + delta);
-    if (cart[index].cantidad === 0) {
-      cart.splice(index, 1);
-    }
-  }
+	const maxStock = Number(product.cantidad) || 0;
 
-  setCart(cart);
-  updateCartSummary();
-  renderListaProductos();
+	if (index === -1) {
+		if (delta > 0 && maxStock >= 1) {
+			cart.push({
+				id_producto: product.id_producto,
+				nombre: getNombreProducto(product),
+				precio: Number(product.precio),
+				cantidad: 1,
+			});
+		}
+	} else {
+		const nuevaCantidad = cart[index].cantidad + delta;
+		if (nuevaCantidad <= 0) {
+			cart.splice(index, 1);
+		} else if (nuevaCantidad <= maxStock) {
+			cart[index].cantidad = nuevaCantidad;
+		} else {
+			showFeedback(feedback, `Stock maximo disponible: ${maxStock}`, true);
+			return;
+		}
+	}
+
+	setCart(cart);
+	updateCartSummary();
+	renderListaProductos();
 }
 
 function handleAgregar(idProducto) {
-  const product = productosActivos.find((p) => p.id_producto === idProducto);
-  if (!product) return;
+	const product = productosActivos.find((p) => p.id_producto === idProducto);
+	if (!product) return;
 
-  const cart = getCart();
-  const index = cart.findIndex((item) => item.id_producto === idProducto);
+	const maxStock = Number(product.cantidad) || 0;
+	const cart = getCart();
+	const index = cart.findIndex((item) => item.id_producto === idProducto);
 
-  if (index === -1) {
-    cart.push({
-      id_producto: product.id_producto,
-      nombre: getNombreProducto(product),
-      precio: Number(product.precio),
-      cantidad: 1,
-    });
-  } else {
-    cart[index].cantidad += 1;
-  }
+	if (index === -1) {
+		if (maxStock < 1) {
+			showFeedback(feedback, "Producto sin stock disponible", true);
+			return;
+		}
+		cart.push({
+			id_producto: product.id_producto,
+			nombre: getNombreProducto(product),
+			precio: Number(product.precio),
+			cantidad: 1,
+		});
+	} else if (cart[index].cantidad < maxStock) {
+		cart[index].cantidad += 1;
+	} else {
+		showFeedback(feedback, `Stock maximo disponible: ${maxStock}`, true);
+		return;
+	}
 
-  setCart(cart);
-  updateCartSummary();
-  renderListaProductos();
+	setCart(cart);
+	updateCartSummary();
+	renderListaProductos();
 }
 
 function bindListaEventos() {
-  pedidoLista.addEventListener("click", (event) => {
-    const minus = event.target.closest(".js-restar");
-    if (minus) {
-      const id = Number(minus.parentElement.dataset.id);
-      handleCantidad(id, -1);
-      return;
-    }
+	pedidoLista.addEventListener("click", (event) => {
+		const minus = event.target.closest(".js-restar");
+		if (minus) {
+			const id = Number(minus.parentElement.dataset.id);
+			handleCantidad(id, -1);
+			return;
+		}
 
-    const plus = event.target.closest(".js-sumar");
-    if (plus) {
-      const id = Number(plus.parentElement.dataset.id);
-      handleCantidad(id, 1);
-      return;
-    }
+		const plus = event.target.closest(".js-sumar");
+		if (plus) {
+			const id = Number(plus.parentElement.dataset.id);
+			handleCantidad(id, 1);
+			return;
+		}
 
-    const add = event.target.closest(".js-agregar");
-    if (add) {
-      const id = Number(add.dataset.id);
-      handleAgregar(id);
-    }
-  });
+		const add = event.target.closest(".js-agregar");
+		if (add) {
+			const id = Number(add.dataset.id);
+			handleAgregar(id);
+		}
+	});
 }
 
 async function confirmarPedido() {
-  const cart = getCart();
-  if (cart.length === 0) {
-    showFeedback(feedback, "Debes agregar al menos un producto", true);
-    setStep("nuevo");
-    return;
-  }
+	const cart = getCart();
+	if (cart.length === 0) {
+		showFeedback(feedback, "Debes agregar al menos un producto", true);
+		setStep("nuevo");
+		return;
+	}
 
-  try {
-    const payload = {
-      id_empleado: sessionUser.id_empleado,
-      productos: cart.map((item) => ({
-        id_producto: item.id_producto,
-        cantidad: item.cantidad,
-      })),
-    };
+	try {
+		const payload = {
+			id_empleado: sessionUser.id_empleado,
+			productos: cart.map((item) => ({
+				id_producto: item.id_producto,
+				cantidad: item.cantidad,
+			})),
+		};
 
-    await crearVentaRequest(payload, sessionToken);
-    renderRealizadoView();
-    setStep("realizado");
-    showFeedback(feedback, "Pedido realizado correctamente");
-    resetCart();
-    updateCartSummary();
-  } catch (error) {
-    setStep("confirmar");
-    showFeedback(feedback, error.message || "No se pudo registrar la venta", true);
-  }
+		await crearVentaRequest(payload, sessionToken);
+		renderRealizadoView();
+		setStep("realizado");
+		showFeedback(feedback, "Pedido realizado correctamente");
+		resetCart();
+		updateCartSummary();
+	} catch (error) {
+		setStep("confirmar");
+		showFeedback(feedback, error.message || "No se pudo registrar la venta", true);
+	}
 }
 
 function bindGeneralEvents() {
-  pedidoFiltrar.addEventListener("click", cargarProductos);
-  pedidoBuscar.addEventListener("input", cargarProductos);
+	pedidoFiltrar.addEventListener("click", cargarProductos);
+	pedidoBuscar.addEventListener("input", cargarProductos);
 
-  pedidoLimpiar.addEventListener("click", () => {
-    pedidoCategoria.value = "";
-    pedidoPrecioMin.value = "";
-    pedidoBuscar.value = "";
-    cargarProductos();
-  });
+	pedidoLimpiar.addEventListener("click", () => {
+		pedidoCategoria.value = "";
+		pedidoPrecioMin.value = "";
+		pedidoBuscar.value = "";
+		cargarProductos();
+	});
 
-  pedidoFinalizar.addEventListener("click", () => {
-    const cart = getCart();
-    if (cart.length === 0) {
-      showFeedback(feedback, "Debes agregar al menos un producto", true);
-      return;
-    }
-    renderConfirmView();
-    setStep("confirmar");
-  });
+	pedidoFinalizar.addEventListener("click", () => {
+		const cart = getCart();
+		if (cart.length === 0) {
+			showFeedback(feedback, "Debes agregar al menos un producto", true);
+			return;
+		}
+		renderConfirmView();
+		setStep("confirmar");
+	});
 
-  confirmarVolver.addEventListener("click", () => setStep("nuevo"));
-  confirmarEnviar.addEventListener("click", confirmarPedido);
-  realizadoHome.addEventListener("click", () => {
-    window.location.href = "/inventario";
-  });
+	confirmarVolver.addEventListener("click", () => setStep("nuevo"));
+	confirmarEnviar.addEventListener("click", confirmarPedido);
+	realizadoHome.addEventListener("click", () => {
+		window.location.href = getDefaultRoute(sessionUser?.rol);
+	});
 }
 
 async function init() {
-  const { token, user } = readSession();
-  if (!token) {
-    redirectToLogin();
-    return;
-  }
+	const { token } = readSession();
+	if (!token) {
+		redirectToLogin();
+		return;
+	}
 
-  try {
-    const me = await meRequest(token);
-    sessionToken = token;
-    sessionUser = me;
-    saveSession(token, me);
+	try {
+		const me = await meRequest(token);
+		sessionToken = token;
+		sessionUser = me;
+		saveSession(token, me);
 
-    shell.innerHTML = renderSharedHeader({ active: "Nuevo Pedido", userName: me.nombre });
-    bindHeaderActions();
+		if (!assertPageAccess(me.rol, window.location.pathname)) {
+			redirectToDefault();
+			return;
+		}
 
-    pedidoFecha.value = new Date().toISOString().slice(0, 10);
+		shell.innerHTML = renderSharedHeader({
+			active: "Nuevo Pedido",
+			userName: me.nombre,
+			rol: me.rol,
+		});
+		bindHeaderActions();
 
-    updateCartSummary();
-    bindListaEventos();
-    bindGeneralEvents();
-    await cargarCategoriasPedido();
-    await cargarProductos();
-  } catch {
-    clearSession();
-    resetCart();
-    redirectToLogin();
-  }
+		pedidoFecha.value = new Date().toISOString().slice(0, 10);
+
+		updateCartSummary();
+		bindListaEventos();
+		bindGeneralEvents();
+		await cargarCategoriasPedido();
+		await cargarProductos();
+	} catch {
+		clearSession();
+		resetCart();
+		redirectToLogin();
+	}
 }
 
 init();

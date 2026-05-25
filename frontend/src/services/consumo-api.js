@@ -122,9 +122,9 @@ export async function crearProductoRequest(payload, token = "") {
 	return parseResponse(response);
 }
 
-export async function actualizarStockRequest(idProducto, payload, token = "") {
-	const response = await fetch(`${API_BASE_URL}/productos/${idProducto}/stock`, {
-		method: "PUT",
+export async function actualizarInventarioRequest(idProducto, payload, token = "") {
+	const response = await fetch(`${API_BASE_URL}/productos/${idProducto}/inventario`, {
+		method: "PATCH",
 		headers: {
 			"Content-Type": "application/json",
 			...(token ? authHeaders(token) : {}),

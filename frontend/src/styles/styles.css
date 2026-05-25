@@ -688,3 +688,18 @@ tbody tr:hover {
 		min-width: auto;
 	}
 }
+
+.table-input {
+	width: 5.5rem;
+	padding: 0.35rem 0.5rem;
+	border: 1px solid var(--border-soft, #d5dce8);
+	border-radius: 6px;
+	font: inherit;
+	background: #fff;
+}
+
+.nav-empty {
+	font-size: 0.85rem;
+	color: var(--text-muted, #6b7280);
+	padding: 0.5rem 0;
+}

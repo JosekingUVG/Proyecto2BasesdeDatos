@@ -33,10 +33,23 @@ app.use("/", productosRoutes);
 app.use("/", ventasRoutes);
 // rutas de reportes
 app.use("/", reportesRoutes);
-// swagger
-app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// swagger — spec estatica en swagger/openapi.json
+app.get("/swagger.json", (req, res) => {
+	res.json(swaggerSpec);
+});
+app.use(
+	"/swagger",
+	swaggerUi.serve,
+	swaggerUi.setup(swaggerSpec, {
+		swaggerOptions: {
+			persistAuthorization: true,
+		},
+	}),
+);
 
 // puerto
 app.listen(port, () => {
-  console.log(`Backend en puerto ${port}`);
+	const pathCount = Object.keys(swaggerSpec.paths || {}).length;
+	console.log(`Backend en puerto ${port}`);
+	console.log(`Swagger: ${pathCount} rutas documentadas -> http://localhost:${port}/swagger`);
 });

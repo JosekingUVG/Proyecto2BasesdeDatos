@@ -1,0 +1,1100 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Tienda — Proyecto 2",
+    "version": "1.0.0",
+    "description": "API REST con autenticacion por usuario Postgres, roles del DBMS y stored procedures. Tras POST /login, use Authorization Bearer <token> o x-session-token."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Backend local / Docker"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Token UUID devuelto por POST /login"
+      },
+      "sessionToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-session-token"
+      }
+    },
+    "schemas": {
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "usuario",
+          "contrasena"
+        ],
+        "properties": {
+          "usuario": {
+            "type": "string",
+            "example": "vendedor_juan"
+          },
+          "contrasena": {
+            "type": "string",
+            "example": "secret"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserSession"
+          }
+        }
+      },
+      "UserSession": {
+        "type": "object",
+        "properties": {
+          "id_empleado": {
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "rol": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "subadmin",
+              "vendedor",
+              "digitador",
+              "auditor"
+            ]
+          }
+        }
+      },
+      "ErrorMessage": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ProductoCreate": {
+        "type": "object",
+        "required": [
+          "categoria",
+          "precio",
+          "marca",
+          "id_proveedor",
+          "cantidad",
+          "costo"
+        ],
+        "properties": {
+          "categoria": {
+            "type": "string",
+            "example": "Procesadores"
+          },
+          "precio": {
+            "type": "number",
+            "example": 1200
+          },
+          "marca": {
+            "type": "string",
+            "example": "Intel"
+          },
+          "id_proveedor": {
+            "type": "integer",
+            "example": 1
+          },
+          "cantidad": {
+            "type": "integer",
+            "example": 10
+          },
+          "costo": {
+            "type": "number",
+            "example": 900
+          }
+        }
+      },
+      "ProductoUpdate": {
+        "type": "object",
+        "properties": {
+          "precio": {
+            "type": "number"
+          },
+          "categoria": {
+            "type": "string"
+          },
+          "marca": {
+            "type": "string"
+          },
+          "status_producto": {
+            "type": "string"
+          },
+          "id_proveedor": {
+            "type": "integer"
+          },
+          "cantidad": {
+            "type": "integer"
+          },
+          "costo": {
+            "type": "number"
+          }
+        }
+      },
+      "InventarioPatch": {
+        "type": "object",
+        "required": [
+          "cantidad",
+          "precio"
+        ],
+        "properties": {
+          "cantidad": {
+            "type": "integer",
+            "example": 25
+          },
+          "precio": {
+            "type": "number",
+            "example": 450
+          }
+        }
+      },
+      "VentaCreate": {
+        "type": "object",
+        "required": [
+          "id_empleado",
+          "productos"
+        ],
+        "properties": {
+          "id_empleado": {
+            "type": "integer",
+            "example": 5
+          },
+          "productos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VentaItem"
+            }
+          }
+        }
+      },
+      "VentaItem": {
+        "type": "object",
+        "required": [
+          "id_producto",
+          "cantidad"
+        ],
+        "properties": {
+          "id_producto": {
+            "type": "integer",
+            "example": 1
+          },
+          "cantidad": {
+            "type": "integer",
+            "example": 2
+          }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "No autenticado",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorMessage"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Sin permiso",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorMessage"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/login": {
+      "post": {
+        "summary": "Autenticacion de usuario",
+        "description": "Valida credenciales contra Postgres, abre conexion por rol y devuelve token de sesion.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales invalidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "summary": "Obtener usuario autenticado",
+        "tags": [
+          "Auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario actual",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSession"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "description": "Devuelve datos del empleado y su rol (`admin`, `subadmin`, `vendedor`, `digitador`, `auditor`)."
+      }
+    },
+    "/logout": {
+      "post": {
+        "summary": "Cerrar sesion",
+        "tags": [
+          "Auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logout exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Logout exitoso"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "description": "Invalida la sesion y cierra la conexion Sequelize del usuario."
+      }
+    },
+    "/productos": {
+      "get": {
+        "summary": "Listar inventario de productos",
+        "tags": [
+          "Productos"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "categoria",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Procesadores",
+            "description": "Filtrar por categoria"
+          },
+          {
+            "in": "query",
+            "name": "precio_min",
+            "schema": {
+              "type": "number"
+            },
+            "example": 100,
+            "description": "Precio minimo"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string"
+            },
+            "example": "activo",
+            "description": "Filtrar por estado del producto"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Intel",
+            "description": "Busqueda parcial en marca o categoria"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de productos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id_producto": {
+                        "type": "integer"
+                      },
+                      "categoria": {
+                        "type": "string"
+                      },
+                      "precio": {
+                        "type": "number"
+                      },
+                      "marca": {
+                        "type": "string"
+                      },
+                      "cantidad": {
+                        "type": "integer"
+                      },
+                      "status_producto": {
+                        "type": "string"
+                      },
+                      "costo": {
+                        "type": "number"
+                      },
+                      "id_proveedor": {
+                        "type": "integer"
+                      },
+                      "nombre_proveedor": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "description": "Todos los roles autenticados. Columnas sensibles (ej. costo) dependen del rol en Postgres."
+      },
+      "post": {
+        "summary": "Crear producto",
+        "description": "Invoca `sp_gestionar_producto` (CREAR). Roles permitidos — admin, subadmin, digitador.",
+        "tags": [
+          "Productos"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Producto creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "producto": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/productos/{id}": {
+      "put": {
+        "summary": "Actualizar producto",
+        "tags": [
+          "Productos"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1,
+            "description": "ID del producto"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Producto actualizado"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Producto no encontrado"
+          }
+        },
+        "description": "Invoca `sp_gestionar_producto` (ACTUALIZAR). Roles — admin, subadmin, digitador."
+      },
+      "delete": {
+        "summary": "Baja logica de producto",
+        "tags": [
+          "Productos"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Producto dado de baja"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Producto no encontrado"
+          }
+        },
+        "description": "Invoca `sp_cambiar_status_producto` con status `inactivo`. Roles — admin, subadmin, digitador."
+      }
+    },
+    "/productos/{id}/inventario": {
+      "patch": {
+        "summary": "Actualizar cantidad y precio inline",
+        "description": "Invoca `sp_actualizar_inventario_inline`. Roles — admin, digitador.",
+        "tags": [
+          "Productos"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InventarioPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inventario actualizado"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Producto no encontrado"
+          }
+        }
+      }
+    },
+    "/ventas": {
+      "post": {
+        "summary": "Registrar venta transaccional",
+        "description": "Invoca `sp_registrar_venta`. Roles — admin, vendedor.",
+        "tags": [
+          "Ventas"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VentaCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Venta creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaResumen"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Stock insuficiente o datos invalidos"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "description": "Error en la transaccion"
+          }
+        }
+      },
+      "get": {
+        "summary": "Listar ventas",
+        "description": "Roles — admin, subadmin, auditor.",
+        "tags": [
+          "Ventas"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de ventas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id_venta": {
+                        "type": "integer"
+                      },
+                      "total_vendido": {
+                        "type": "number"
+                      },
+                      "fecha_venta": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "nombre_empleado": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/ventas/{id}": {
+      "get": {
+        "summary": "Detalle de una venta",
+        "tags": [
+          "Ventas"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Venta con detalle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "venta": {
+                      "type": "object",
+                      "properties": {
+                        "id_venta": {
+                          "type": "integer"
+                        },
+                        "total_vendido": {
+                          "type": "number"
+                        },
+                        "fecha_venta": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "nombre_empleado": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "detalle": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id_producto": {
+                            "type": "integer"
+                          },
+                          "marca": {
+                            "type": "string"
+                          },
+                          "cantidad_producto": {
+                            "type": "integer"
+                          },
+                          "precio_unitario": {
+                            "type": "number"
+                          },
+                          "subtotal": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Venta no encontrada"
+          }
+        },
+        "description": "Cabecera y lineas de detalle. Roles — admin, subadmin, auditor."
+      }
+    },
+    "/reportes/fechas": {
+      "get": {
+        "summary": "Reporte de ventas por rango de fechas",
+        "tags": [
+          "Reportes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "fecha_inicio",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-04-01"
+          },
+          {
+            "in": "query",
+            "name": "fecha_fin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-04-22"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resumen y detalle por dia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "resumen": {
+                      "type": "object",
+                      "properties": {
+                        "total_unidades": {
+                          "type": "integer"
+                        },
+                        "total_ingresos": {
+                          "type": "number"
+                        },
+                        "total_costos": {
+                          "type": "number"
+                        },
+                        "total_ganancia": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "detalle": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "fecha": {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "total_unidades": {
+                            "type": "integer"
+                          },
+                          "total_ingresos": {
+                            "type": "number"
+                          },
+                          "total_ganancia": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametros faltantes o invalidos"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        },
+        "description": "Roles — admin, subadmin, auditor."
+      }
+    },
+    "/reportes/proveedores": {
+      "get": {
+        "summary": "Reporte por proveedor",
+        "tags": [
+          "Reportes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resumen y detalle por proveedor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "resumen": {
+                      "type": "object",
+                      "properties": {
+                        "total_unidades": {
+                          "type": "integer"
+                        },
+                        "total_proveedores": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "detalle": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "nombre_proveedor": {
+                            "type": "string"
+                          },
+                          "mes": {
+                            "type": "string"
+                          },
+                          "total_unidades": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        },
+        "description": "Resumen via `sp_obtener_resumen_proveedores` y detalle por mes. Roles — admin, subadmin, auditor."
+      }
+    },
+    "/reportes/empleados": {
+      "get": {
+        "summary": "Reporte de ventas por empleado (mes)",
+        "tags": [
+          "Reportes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mes",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-04-01",
+            "description": "Cualquier fecha del mes a consultar"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resumen y detalle por empleado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "resumen": {
+                      "type": "object",
+                      "properties": {
+                        "total_ventas": {
+                          "type": "integer"
+                        },
+                        "total_vendido": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "detalle": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "nombre": {
+                            "type": "string"
+                          },
+                          "numero_ventas": {
+                            "type": "integer"
+                          },
+                          "total_vendido": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametro mes requerido"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        },
+        "description": "Roles — admin, subadmin, auditor."
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Autenticacion y sesion"
+    },
+    {
+      "name": "Productos",
+      "description": "Inventario y catalogo"
+    },
+    {
+      "name": "Ventas",
+      "description": "Pedidos y consulta de ventas"
+    },
+    {
+      "name": "Reportes",
+      "description": "Analitica de ventas"
+    }
+  ]
+}

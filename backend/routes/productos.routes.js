@@ -1,204 +1,172 @@
-/*
-  * Archivo: productos.routes.js
-  * Descripción: Define las rutas relacionadas con la gestión de productos, incluyendo la obtención del inventario, la creación de nuevos productos, la actualización de stock y costo promedio, la actualización de información general y la eliminación de productos, utilizando controladores específicos para manejar cada una de estas operaciones y documentando las rutas con Swagger para facilitar su uso y comprensión.
-*/
 import express from "express";
 import {
-  deleteProductoController,
-  getProductosController,
-  postProductoController,
-  putProductoController,
-  putStockProductoController,
-} from "../controllers/endpoint.js";
+	deleteProductoController,
+	getProductosController,
+	patchInventarioController,
+	postProductoController,
+	putProductoController,
+} from "../controllers/productos.controllers.js";
+import { requireAuth } from "../middleware/auth.middleware.js";
+import { requireRoles } from "../middleware/roles.middleware.js";
 
 const router = express.Router();
+
+const gestionCatalogo = requireRoles("admin", "subadmin", "digitador");
+const inventarioInline = requireRoles("admin", "digitador");
+
+/**
+ * @swagger
+ * tags:
+ *   - name: Productos
+ *     description: Inventario y catalogo
+ */
 
 /**
  * @swagger
  * /productos:
  *   get:
- *     summary: Obtener inventario de productos
+ *     summary: Listar inventario de productos
  *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *       - sessionToken: []
  *     parameters:
  *       - in: query
  *         name: categoria
  *         schema:
  *           type: string
- *         required: false
- *         description: Filtrar por categoría
- *         example: Electrónica
+ *         example: Procesadores
  *       - in: query
  *         name: precio_min
  *         schema:
  *           type: number
- *         required: false
- *         description: Filtrar por precio mínimo
  *         example: 100
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         example: activo
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         example: Intel
  *     responses:
  *       200:
  *         description: Lista de productos
- */
-router.get("/productos", (req, res) => {
-  getProductosController(req, res);
-});
-
-
-/**
- * @swagger
- * /productos:
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
  *   post:
- *     summary: Crear un nuevo producto
+ *     summary: Crear producto
+ *     description: Roles permitidos — admin, subadmin, digitador
  *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *       - sessionToken: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - categoria
- *               - precio
- *               - marca
- *               - id_proveedor
- *               - cantidad
- *               - costo
- *             properties:
- *               categoria:
- *                 type: string
- *                 example: Electrónica
- *               precio:
- *                 type: number
- *                 example: 1200
- *               marca:
- *                 type: string
- *                 example: Dell
- *               id_proveedor:
- *                 type: integer
- *                 example: 1
- *               cantidad:
- *                 type: integer
- *                 example: 10
- *               costo:
- *                 type: number
- *                 example: 900
+ *             $ref: '#/components/schemas/ProductoCreate'
  *     responses:
  *       200:
- *         description: Producto creado correctamente
+ *         description: Producto creado
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-router.post("/productos", (req, res) => {
-  postProductoController(req, res);
-});
-
-
-/**
- * @swagger
- * /productos/{id}/stock:
- *   put:
- *     summary: Actualizar stock y costo promedio de un producto
- *     tags: [Productos]
- *     description: |
- *       Suma cantidad al inventario y recalcula el costo promedio del producto.
- *       La lógica del promedio se realiza en backend.
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID del producto
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - cantidad
- *               - costo_nuevo
- *             properties:
- *               cantidad:
- *                 type: integer
- *                 example: 5
- *               costo_nuevo:
- *                 type: number
- *                 example: 1000
- *     responses:
- *       200:
- *         description: Stock actualizado correctamente
- *       404:
- *         description: Producto no encontrado
- */
-router.put("/productos/:id/stock", (req, res) => {
-  putStockProductoController(req, res);
-});
-
+router.get("/productos", requireAuth, getProductosController);
+router.post("/productos", requireAuth, gestionCatalogo, postProductoController);
 
 /**
  * @swagger
  * /productos/{id}:
  *   put:
- *     summary: Actualizar información de un producto
+ *     summary: Actualizar producto
  *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *       - sessionToken: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID del producto
  *         schema:
  *           type: integer
+ *         example: 1
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               precio:
- *                 type: number
- *                 example: 150
- *               categoria:
- *                 type: string
- *                 example: Electrónica
- *               marca:
- *                 type: string
- *                 example: Dell
- *               status_producto:
- *                 type: string
- *                 example: Activo
+ *             $ref: '#/components/schemas/ProductoUpdate'
  *     responses:
  *       200:
- *         description: Producto actualizado correctamente
+ *         description: Producto actualizado
  *       404:
- *         description: Producto no encontrado
- */
-router.put("/productos/:id", (req, res) => {
-  putProductoController(req, res);
-});
-
-
-/**
- * @swagger
- * /productos/{id}:
+ *         description: No encontrado
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *   delete:
- *     summary: Eliminar un producto
+ *     summary: Baja logica (status inactivo)
  *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *       - sessionToken: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID del producto a eliminar
  *         schema:
  *           type: integer
+ *         example: 1
  *     responses:
  *       200:
- *         description: Producto eliminado correctamente
+ *         description: Producto dado de baja
  *       404:
- *         description: Producto no encontrado
- *       400:
- *         description: No se puede eliminar (por restricción de clave foránea)
+ *         description: No encontrado
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-router.delete("/productos/:id", (req, res) => {
-  deleteProductoController(req, res);
-});
+router.put("/productos/:id", requireAuth, gestionCatalogo, putProductoController);
+
+/**
+ * @swagger
+ * /productos/{id}/inventario:
+ *   patch:
+ *     summary: Actualizar cantidad y precio inline
+ *     description: Roles — admin, digitador
+ *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *       - sessionToken: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/InventarioPatch'
+ *     responses:
+ *       200:
+ *         description: Inventario actualizado
+ *       404:
+ *         description: No encontrado
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
+ */
+router.patch(
+	"/productos/:id/inventario",
+	requireAuth,
+	inventarioInline,
+	patchInventarioController,
+);
+router.delete("/productos/:id", requireAuth, gestionCatalogo, deleteProductoController);
 
 export default router;

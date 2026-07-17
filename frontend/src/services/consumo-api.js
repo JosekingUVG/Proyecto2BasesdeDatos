@@ -1,4 +1,4 @@
-const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:5000`;
+const API_BASE_URL = 'https://proyecto2basesdedatos.onrender.com';
 
 function authHeaders(token) {
 	return {

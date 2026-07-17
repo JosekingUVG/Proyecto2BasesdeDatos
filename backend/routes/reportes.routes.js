@@ -1,22 +1,32 @@
-/*
-  * Archivo: reportes.routes.js
-  * Descripción: Define las rutas relacionadas con la generación de reportes, incluyendo el reporte de ventas por rango de fechas, el reporte de ventas por proveedor y el reporte de ventas por empleado en un mes específico, utilizando controladores específicos para manejar cada una de estas operaciones y documentando las rutas con Swagger para facilitar su uso y comprensión.
-*/
 import express from "express";
 import {
-  getReporteEmpleadosController,
-  getReporteFechasController,
-  getReporteProveedoresController,
-} from "../controllers/endpoint.js";
+	getReporteEmpleadosController,
+	getReporteFechasController,
+	getReporteProveedoresController,
+} from "../controllers/reportes.controllers.js";
+import { requireAuth } from "../middleware/auth.middleware.js";
+import { requireRoles } from "../middleware/roles.middleware.js";
 
 const router = express.Router();
+
+const lecturaReportes = requireRoles("admin", "subadmin", "auditor");
+
+/**
+ * @swagger
+ * tags:
+ *   - name: Reportes
+ *     description: Analitica de ventas
+ */
 
 /**
  * @swagger
  * /reportes/fechas:
  *   get:
- *     summary: Reporte de ventas por rango de fechas
+ *     summary: Reporte por rango de fechas
  *     tags: [Reportes]
+ *     security:
+ *       - bearerAuth: []
+ *       - sessionToken: []
  *     parameters:
  *       - in: query
  *         name: fecha_inicio
@@ -24,69 +34,55 @@ const router = express.Router();
  *         schema:
  *           type: string
  *           format: date
- *         example: 2026-04-01
+ *         example: "2026-04-01"
  *       - in: query
  *         name: fecha_fin
  *         required: true
  *         schema:
  *           type: string
  *           format: date
- *         example: 2026-04-22
+ *         example: "2026-04-22"
  *     responses:
  *       200:
- *         description: Reporte por fechas
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 resumen:
- *                   type: object
- *                   properties:
- *                     total_unidades:
- *                       type: integer
- *                     total_ingresos:
- *                       type: number
- *                     total_ganancia:
- *                       type: number
- *                 detalle:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       fecha:
- *                         type: string
- *                       total_unidades:
- *                         type: integer
- *                       total_ingresos:
- *                         type: number
- *                       total_ganancia:
- *                         type: number
+ *         description: Resumen y detalle por dia
+ *       400:
+ *         description: Fechas requeridas
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-router.get("/reportes/fechas", (req, res) => {
-  getReporteFechasController(req, res);
-});
+router.get("/reportes/fechas", requireAuth, lecturaReportes, getReporteFechasController);
 
 /**
  * @swagger
  * /reportes/proveedores:
  *   get:
- *     summary: Reporte de ventas por proveedor
+ *     summary: Reporte por proveedor
  *     tags: [Reportes]
+ *     security:
+ *       - bearerAuth: []
+ *       - sessionToken: []
  *     responses:
  *       200:
- *         description: Reporte por proveedor
+ *         description: Resumen (SP) y detalle por mes
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-router.get("/reportes/proveedores", (req, res) => {
-  getReporteProveedoresController(req, res);
-});
+router.get(
+	"/reportes/proveedores",
+	requireAuth,
+	lecturaReportes,
+	getReporteProveedoresController,
+);
 
 /**
  * @swagger
  * /reportes/empleados:
  *   get:
- *     summary: Reporte de ventas por empleado en un mes
+ *     summary: Reporte por empleado en un mes
  *     tags: [Reportes]
+ *     security:
+ *       - bearerAuth: []
+ *       - sessionToken: []
  *     parameters:
  *       - in: query
  *         name: mes
@@ -94,13 +90,20 @@ router.get("/reportes/proveedores", (req, res) => {
  *         schema:
  *           type: string
  *           format: date
- *         example: 2026-04-01
+ *         example: "2026-04-01"
  *     responses:
  *       200:
- *         description: Reporte por empleado
+ *         description: Resumen y detalle por empleado
+ *       400:
+ *         description: Parametro mes requerido
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-router.get("/reportes/empleados", (req, res) => {
-  getReporteEmpleadosController(req, res);
-});
+router.get(
+	"/reportes/empleados",
+	requireAuth,
+	lecturaReportes,
+	getReporteEmpleadosController,
+);
 
 export default router;

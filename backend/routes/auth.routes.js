@@ -1,54 +1,44 @@
-/*
-  * Archivo: auth.routes.js
-  * Descripción: Define las rutas relacionadas con la autenticación de usuarios, incluyendo el login, logout y la obtención de información del usuario autenticado, utilizando controladores específicos para manejar cada una de estas operaciones y documentando las rutas con Swagger para facilitar su uso y comprensión.
-*/
 import express from "express";
-import { loginController, logoutController, meController } from "../controllers/endpoint.js";
+import {
+	loginController,
+	logoutController,
+	meController,
+} from "../controllers/auth.controllers.js";
+import { requireAuth } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
 /**
  * @swagger
+ * tags:
+ *   - name: Auth
+ *     description: Autenticacion y sesion
+ */
+
+/**
+ * @swagger
  * /login:
  *   post:
- *     summary: Autenticación de usuario
+ *     summary: Autenticacion de usuario
+ *     description: Valida usuario/contrasena en Postgres y devuelve token de sesion.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               usuario:
- *                 type: string
- *                 example: juan
- *               contrasena:
- *                 type: string
- *                 example: 1234
+ *             $ref: '#/components/schemas/LoginRequest'
  *     responses:
  *       200:
  *         description: Login exitoso
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 user:
- *                   type: object
- *                   properties:
- *                     id_empleado:
- *                       type: integer
- *                     nombre:
- *                       type: string
+ *               $ref: '#/components/schemas/LoginResponse'
  *       401:
- *         description: Credenciales inválidas
+ *         description: Credenciales invalidas
  */
-router.post("/login", (req, res) => {
-  loginController(req, res);
-});
+router.post("/login", loginController);
 
 /**
  * @swagger
@@ -56,37 +46,36 @@ router.post("/login", (req, res) => {
  *   get:
  *     summary: Obtener usuario autenticado
  *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *       - sessionToken: []
  *     responses:
  *       200:
- *         description: Usuario actual
+ *         description: Usuario actual con rol
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 id_empleado:
- *                   type: integer
- *                 nombre:
- *                   type: string
+ *               $ref: '#/components/schemas/UserSession'
  *       401:
- *         description: No autenticado
+ *         $ref: '#/components/responses/Unauthorized'
  */
-router.get("/me", (req, res) => {
-  meController(req, res);
-});
+router.get("/me", requireAuth, meController);
 
 /**
  * @swagger
  * /logout:
  *   post:
- *     summary: Cerrar sesión
+ *     summary: Cerrar sesion
  *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *       - sessionToken: []
  *     responses:
  *       200:
  *         description: Logout exitoso
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
  */
-router.post("/logout", (req, res) => {
-  logoutController(req, res);
-});
+router.post("/logout", requireAuth, logoutController);
 
 export default router;

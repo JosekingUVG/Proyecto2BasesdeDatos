@@ -39,16 +39,11 @@ Cambiar a la rama proyecto-3, allí encontrarás las instrucciones para esto.
 
 | Servicio | URL |
 | --- | --- |
-| Frontend | http://localhost:3000
-|
-| Backend | http://localhost:5000
-|
-| Swagger (documentación) | http://localhost:5000/swagger
-|
-| Adminer | http://localhost:8080
-|
-| PostgreSQL | puerto 5432
-|
+| Frontend | http://localhost:3000 |
+| Backend | http://localhost:5000 |
+| Swagger (documentación) | http://localhost:5000/swagger |
+| Adminer | http://localhost:8080 |
+| PostgreSQL | puerto 5432 |
 
 ---
 
@@ -61,19 +56,11 @@ Cambiar a la rama proyecto-3, allí encontrarás las instrucciones para esto.
 
 | Documento | Descripción |
 | --- | --- |
-| [Justificación Arquitectura](https://www.google.com/search?q=docs/Justificacion%2520arquitectura.md)<br> | Arquitectura por capas del sistema y decisiones de diseño
-|
-| [Arquitectura](https://www.google.com/search?q=docs/arquitectura.md)<br> | Arquitectura por capas del sistema y decisiones de diseño
-|
-| [Base de datos](https://www.google.com/search?q=docs/Justificaci%C3%B3n%2520de%2520base%2520de%2520datos.md)<br> | Modelo relacional, relaciones, justificación 3fn, diagrama ER, modelo conceptual y manejo de costos
-|
-| [Infraestructura](https://www.google.com/search?q=docs/justificacion%2520infraestructura.md)<br> | Configuración Docker y servicios
-|
-| [Lógica del proyecto](https://www.google.com/search?q=docs/logica%2520del%2520proyecto.md)<br> | Lógica de negocio y flujos principales
-|
-| [Endpoints](https://www.google.com/search?q=docs/endpoints.md)<br> | Referencia de la API REST
-|
-| [Sentencias SQL](https://www.google.com/search?q=docs/sentenciasSQL.md)<br> | Queries y estructura de la base de datos
-|
-| [Roles y permisos](https://www.google.com/search?q=docs/roles.md)<br> | Matriz de endpoints por rol y detalle de accesos
-|
+| [Justificación Arquitectura](https://www.google.com/search?q=docs/Justificacion%2520arquitectura.md)<br> | Arquitectura por capas del sistema y decisiones de diseño |
+| [Arquitectura](https://www.google.com/search?q=docs/arquitectura.md)<br> | Arquitectura por capas del sistema y decisiones de diseño |
+| [Base de datos](https://www.google.com/search?q=docs/Justificaci%C3%B3n%2520de%2520base%2520de%2520datos.md)<br> | Modelo relacional, relaciones, justificación 3fn, diagrama ER, modelo conceptual y manejo de costos |
+| [Infraestructura](https://www.google.com/search?q=docs/justificacion%2520infraestructura.md)<br> | Configuración Docker y servicios |
+| [Lógica del proyecto](https://www.google.com/search?q=docs/logica%2520del%2520proyecto.md)<br> | Lógica de negocio y flujos principales |
+| [Endpoints](https://www.google.com/search?q=docs/endpoints.md)<br> | Referencia de la API REST |
+| [Sentencias SQL](https://www.google.com/search?q=docs/sentenciasSQL.md)<br> | Queries y estructura de la base de datos |
+| [Roles y permisos](https://www.google.com/search?q=docs/roles.md)<br> | Matriz de endpoints por rol y detalle de accesos |
